@@ -108,6 +108,11 @@ for branch in ${BRANCH_NAME//,/ }; do
         android_version="10"
         patch_name="android_frameworks_base-Q.patch"
         ;;
+      lineage-18.1*)
+        themuppets_branch="lineage-18.1"
+        android_version="11"
+        patch_name="android_frameworks_base-Q.patch"
+        ;;
       *)
         echo ">> [$(date)] Building branch $branch is not (yet) suppported"
         exit 1

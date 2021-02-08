@@ -5,7 +5,7 @@ _SROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 DEVICE_LIST='serranoltexx,bacon'
 RELEASE_TYPE='UNOFFICIAL'
-BRANCH_NAME='lineage-17.1'
+BRANCH_NAME='lineage-18.1'
 
 OTA_URL=''
 INCLUDE_PROPRIETARY=true
