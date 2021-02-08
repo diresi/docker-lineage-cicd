@@ -22,9 +22,9 @@ repo_log="$LOGS_DIR/repo-$(date +%Y%m%d).log"
 # cd to working directory
 cd "$SRC_DIR"
 
-if [ -f /root/userscripts/begin.sh ]; then
+if [ -f $_SROOT/userscripts/begin.sh ]; then
   echo ">> [$(date)] Running begin.sh"
-  /root/userscripts/begin.sh
+  $_SROOT/userscripts/begin.sh
 fi
 
 # If requested, clean the OUT dir in order to avoid clutter
@@ -70,7 +70,7 @@ if [ "$LOCAL_MIRROR" = true ]; then
   rm -f .repo/local_manifests/proprietary.xml
   if [ "$INCLUDE_PROPRIETARY" = true ]; then
     wget -q -O .repo/local_manifests/proprietary.xml "https://raw.githubusercontent.com/TheMuppets/manifests/mirror/default.xml"
-    /root/build_manifest.py --remote "https://gitlab.com" --remotename "gitlab_https" \
+    $_SROOT/build_manifest.py --remote "https://gitlab.com" --remotename "gitlab_https" \
       "https://gitlab.com/the-muppets/manifest/raw/mirror/default.xml" .repo/local_manifests/proprietary_gitlab.xml
   fi
 
@@ -147,7 +147,7 @@ for branch in ${BRANCH_NAME//,/ }; do
     rm -f .repo/local_manifests/proprietary.xml
     if [ "$INCLUDE_PROPRIETARY" = true ]; then
       wget -q -O .repo/local_manifests/proprietary.xml "https://raw.githubusercontent.com/TheMuppets/manifests/$themuppets_branch/muppets.xml"
-      /root/build_manifest.py --remote "https://gitlab.com" --remotename "gitlab_https" \
+      $_SROOT/build_manifest.py --remote "https://gitlab.com" --remotename "gitlab_https" \
         "https://gitlab.com/the-muppets/manifest/raw/$themuppets_branch/muppets.xml" .repo/local_manifests/proprietary_gitlab.xml
     fi
 
@@ -175,17 +175,17 @@ for branch in ${BRANCH_NAME//,/ }; do
       if [ "$SIGNATURE_SPOOFING" = "yes" ]; then
         echo ">> [$(date)] Applying the standard signature spoofing patch ($patch_name) to frameworks/base"
         echo ">> [$(date)] WARNING: the standard signature spoofing patch introduces a security threat"
-        patch --quiet -p1 -i "/root/signature_spoofing_patches/$patch_name"
+        patch --quiet -p1 -i "$_SROOT/signature_spoofing_patches/$patch_name"
       else
         echo ">> [$(date)] Applying the restricted signature spoofing patch (based on $patch_name) to frameworks/base"
-        sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' "/root/signature_spoofing_patches/$patch_name" | patch --quiet -p1
+        sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' "$_SROOT/signature_spoofing_patches/$patch_name" | patch --quiet -p1
       fi
       git clean -q -f
       cd ../..
 
       # Override device-specific settings for the location providers
       mkdir -p "vendor/$vendor/overlay/microg/frameworks/base/core/res/res/values/"
-      cp /root/signature_spoofing_patches/frameworks_base_config.xml "vendor/$vendor/overlay/microg/frameworks/base/core/res/res/values/config.xml"
+      cp $_SROOT/signature_spoofing_patches/frameworks_base_config.xml "vendor/$vendor/overlay/microg/frameworks/base/core/res/res/values/config.xml"
     fi
 
     echo ">> [$(date)] Setting \"$RELEASE_TYPE\" as release type"
@@ -199,10 +199,10 @@ for branch in ${BRANCH_NAME//,/ }; do
 
       if [ -n "$(grep updater_server_url packages/apps/Updater/res/values/strings.xml)" ]; then
         # "New" updater configuration: full URL (with placeholders {device}, {type} and {incr})
-        sed "s|{name}|updater_server_url|g; s|{url}|$OTA_URL/v1/{device}/{type}/{incr}|g" /root/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
+        sed "s|{name}|updater_server_url|g; s|{url}|$OTA_URL/v1/{device}/{type}/{incr}|g" $_SROOT/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
       elif [ -n "$(grep conf_update_server_url_def packages/apps/Updater/res/values/strings.xml)" ]; then
         # "Old" updater configuration: just the URL
-        sed "s|{name}|conf_update_server_url_def|g; s|{url}|$OTA_URL|g" /root/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
+        sed "s|{name}|conf_update_server_url_def|g; s|{url}|$OTA_URL|g" $_SROOT/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
       else
         echo ">> [$(date)] ERROR: no known Updater URL property found"
         exit 1
@@ -232,9 +232,9 @@ for branch in ${BRANCH_NAME//,/ }; do
     echo ">> [$(date)] Preparing build environment"
     source build/envsetup.sh > /dev/null
 
-    if [ -f /root/userscripts/before.sh ]; then
+    if [ -f $_SROOT/userscripts/before.sh ]; then
       echo ">> [$(date)] Running before.sh"
-      /root/userscripts/before.sh
+      $_SROOT/userscripts/before.sh
     fi
 
     for codename in ${devices//,/ }; do
@@ -280,9 +280,9 @@ for branch in ${BRANCH_NAME//,/ }; do
 
         DEBUG_LOG="$LOGS_DIR/$logsubdir/lineage-$los_ver-$builddate-$RELEASE_TYPE-$codename.log"
 
-        if [ -f /root/userscripts/pre-build.sh ]; then
+        if [ -f $_SROOT/userscripts/pre-build.sh ]; then
           echo ">> [$(date)] Running pre-build.sh for $codename" >> "$DEBUG_LOG"
-          /root/userscripts/pre-build.sh $codename &>> "$DEBUG_LOG"
+          $_SROOT/userscripts/pre-build.sh $codename &>> "$DEBUG_LOG"
         fi
 
         # Start the build
@@ -291,7 +291,7 @@ for branch in ${BRANCH_NAME//,/ }; do
         if brunch $codename &>> "$DEBUG_LOG"; then
           currentdate=$(date +%Y%m%d)
           if [ "$builddate" != "$currentdate" ]; then
-            find out/target/product/$codename -maxdepth 1 -name "lineage-*-$currentdate-*.zip*" -type f -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; &>> "$DEBUG_LOG"
+            find out/target/product/$codename -maxdepth 1 -name "lineage-*-$currentdate-*.zip*" -type f -exec sh $_SROOT/fix_build_date.sh {} $currentdate $builddate \; &>> "$DEBUG_LOG"
           fi
 
           # Move produced ZIP files to the main OUT directory
@@ -317,21 +317,21 @@ for branch in ${BRANCH_NAME//,/ }; do
         # Remove old zips and logs
         if [ "$DELETE_OLD_ZIPS" -gt "0" ]; then
           if [ "$ZIP_SUBDIR" = true ]; then
-            /usr/bin/python /root/clean_up.py -n $DELETE_OLD_ZIPS -V $los_ver -N 1 "$ZIP_DIR/$zipsubdir"
+            /usr/bin/python $_SROOT/clean_up.py -n $DELETE_OLD_ZIPS -V $los_ver -N 1 "$ZIP_DIR/$zipsubdir"
           else
-            /usr/bin/python /root/clean_up.py -n $DELETE_OLD_ZIPS -V $los_ver -N 1 -c $codename "$ZIP_DIR"
+            /usr/bin/python $_SROOT/clean_up.py -n $DELETE_OLD_ZIPS -V $los_ver -N 1 -c $codename "$ZIP_DIR"
           fi
         fi
         if [ "$DELETE_OLD_LOGS" -gt "0" ]; then
           if [ "$LOGS_SUBDIR" = true ]; then
-            /usr/bin/python /root/clean_up.py -n $DELETE_OLD_LOGS -V $los_ver -N 1 "$LOGS_DIR/$logsubdir"
+            /usr/bin/python $_SROOT/clean_up.py -n $DELETE_OLD_LOGS -V $los_ver -N 1 "$LOGS_DIR/$logsubdir"
           else
-            /usr/bin/python /root/clean_up.py -n $DELETE_OLD_LOGS -V $los_ver -N 1 -c $codename "$LOGS_DIR"
+            /usr/bin/python $_SROOT/clean_up.py -n $DELETE_OLD_LOGS -V $los_ver -N 1 -c $codename "$LOGS_DIR"
           fi
         fi
-        if [ -f /root/userscripts/post-build.sh ]; then
+        if [ -f $_SROOT/userscripts/post-build.sh ]; then
           echo ">> [$(date)] Running post-build.sh for $codename" >> "$DEBUG_LOG"
-          /root/userscripts/post-build.sh $codename $build_successful &>> "$DEBUG_LOG"
+          $_SROOT/userscripts/post-build.sh $codename $build_successful &>> "$DEBUG_LOG"
         fi
         echo ">> [$(date)] Finishing build for $codename" | tee -a "$DEBUG_LOG"
 
@@ -371,7 +371,7 @@ if [ "$DELETE_OLD_LOGS" -gt "0" ]; then
   find "$LOGS_DIR" -maxdepth 1 -name repo-*.log | sort | head -n -$DELETE_OLD_LOGS | xargs -r rm
 fi
 
-if [ -f /root/userscripts/end.sh ]; then
+if [ -f $_SROOT/userscripts/end.sh ]; then
   echo ">> [$(date)] Running end.sh"
-  /root/userscripts/end.sh
+  $_SROOT/userscripts/end.sh
 fi
