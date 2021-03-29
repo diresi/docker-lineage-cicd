@@ -3,9 +3,11 @@
 _SROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 
-DEVICE_LIST='serranoltexx,bacon'
+BRANCH_NAME='lineage-17.1'
+
+#DEVICE_LIST='serranoltexx,bacon'
+DEVICE_LIST='serranoltexx'
 RELEASE_TYPE='UNOFFICIAL'
-BRANCH_NAME='lineage-18.1'
 
 OTA_URL='https://android.rissner.net/api'
 INCLUDE_PROPRIETARY=true
@@ -18,8 +20,9 @@ KEYS_DIR=$WD/keys
 ZIP_DIR=$WD/zips
 SRC_DIR=$WD/src
 LOGS_DIR=$WD/logs
+LMANIFEST_DIR=$WD/local_manifests
 
-mkdir -p $KEYS_DIR $ZIP_DIR $SRC_DIR $LOGS_DIR
+mkdir -p $KEYS_DIR $ZIP_DIR $SRC_DIR $LOGS_DIR $LMANIFEST_DIR
 
 WITH_SU=true
 SIGNATURE_SPOOFING="restricted"
